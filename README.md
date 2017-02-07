@@ -46,7 +46,3 @@
     // fire
     $task->fire();
 
-6.worker平滑重启    
-
-	$proc = new MyMutiProc();
-    $proc->restartWorker();
