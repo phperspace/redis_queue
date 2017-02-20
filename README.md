@@ -68,6 +68,7 @@
     $task->fire();    
     
 2.release ——延时重试   
+
 	// 释放job回到队列中，指定时间30s后重试    
     $task->release(30);    
     
