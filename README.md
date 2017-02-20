@@ -12,37 +12,83 @@
 3.采用“容器模式”，实现各worker对象的单例化    
     
 # 使用       
+
+## 开始       
+
 1.必须要先引入autoload.php，如下：  
 
 	require_once '../autoload.php';  
 	
-2.引入相关的RedisQueue类及命名空间，如下：  
-	
+2.引入相关的类及命名空间，如下：
+  
+	// 引入RedisQueue    
 	use Src\Space\Phper\Task\RedisQueue;  
-	
-3.push 
+
+## RedisQueue相关 ——参照RedisQueue类             	
+
+1.push ——推入队列        
 
     // 此处指定该任务由Test\TestWorker类的fire方法执行
 	$job = 'Test\TestWorker@fire';
 	$data = array('hello' => 'push');
 	$redisQueue->push($job, $data);
 	
-4.pop&fire    
+2.pop ——从队列取出   
 
+	// 取一个任务    
     $task = $redisQueue->pop();
-    $task->fire();
+    // 执行一个任务    
+    $task->fire();    
+    
+3.later ——推入延时队列       	
 
-5.可外部注入worker   
+	$job = 'Test\TestWorker@fire';
+	$data = array('hello' => 'push');
+	// 延时10s后执行
+	$redisQueue->later(10, $job, $data);   
+
+4.regist ——外部注入worker（可选）   
 
 	// 一般来说，不需要外部注入worker，程序会通过new的方式自动创建worker；
 	// 但是，对于CodeIgniter等不支持命名空间的框架，必须先自行往WorkerContainer注入Worker对象
 	// 如下，取worker容器类，通过外部注入worker
 	$container = WorkerContainer::getInstance();
-    $task = $redisQueue->pop();
-    $class = $task->getName();
-    if (! $container->fetch($class)) {
-        $container->regist($class, new $class());
-    }
-    // fire
-    $task->fire();
+    $task = $redisQueue->pop();    
+    $class = $task->getName();    
+    if (! $container->fetch($class)) {    
+        $container->regist($class, new $class());    
+    }    
+    // fire    
+    $task->fire();    
 
+## RedisJob相关 ——参照RedisJob类        
+
+1.fire ——执行一个任务   
+
+    $task->fire();    
+    
+2.release ——延时重试   
+	// 释放job回到队列中，指定时间30s后重试    
+    $task->release(30);    
+    
+3.delete ——删除任务    
+
+	// 执行任务成功，需要调用delete做删除    
+    $task->delete();    
+      
+4.attempts ——取尝试次数   
+
+    $attempts = $task->attempts();    
+    if ($attempts == 1)  {    
+    	// 第一次执行    
+    } elseif($attempts <= 5) {    
+    	// 尝试5次以内    
+    } else {    
+    	// 尝试5次以上    
+    }   
+    
+    
+    
+    
+    
+    
